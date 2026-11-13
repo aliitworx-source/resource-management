@@ -2,6 +2,19 @@
 
 A persistent, single-workspace development application based on the attached Functional Requirements Specification v1.0 (13 November 2026). Built with Flask, SQLite, vanilla JavaScript and openpyxl. No external API credentials are needed for the local workflow.
 
+## Publish from GitHub
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/aliitworx-source/resource-management)
+
+1. Click **Deploy to Render** above.
+2. Sign in to Render with GitHub and allow access to this repository if prompted.
+3. Review the paid service/storage price, then click **Deploy Blueprint**. No terminal commands, API keys, or manual environment variables are needed.
+4. Once Render shows **Live**, open its website URL. Username: `admin`. Find the automatically generated password in Render → your service → **Environment → APP_ADMIN_PASSWORD**.
+
+After setup, pushing changes to GitHub's `main` branch automatically updates the website. GitHub Actions runs the application checks on pushes and pull requests.
+
+GitHub stores the code; Render runs the application and keeps its database. GitHub Pages cannot run this application's Python backend. See [deployment details](DEPLOY.md).
+
 ## Run
 
 Requires Python 3.12 and its venv support. Use the existing checkout; cloud tasks are already isolated and do not require another Git worktree.

@@ -3,6 +3,7 @@ services:
   - type: web
     name: resource-management
     runtime: python
+    branch: main
     plan: starter
     region: singapore
     buildCommand: pip install -r requirements.txt
