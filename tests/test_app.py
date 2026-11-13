@@ -104,20 +104,14 @@ def test_xlsx_and_csv_formula_safety(client):
     r=client.post('/api/imports/commit',headers=h,data={'source':'Jira','file':(out,'time.xlsx')})
     assert r.status_code==200 and r.json['valid']==1
 
-def test_missing_days_and_user_management(client):
+def test_missing_days_and_removed_administration(client):
     h=login(client,'ops');p,a,b=period(client,h)
     assert client.post('/api/periods',headers=h,json={'id':p['id'],'action':'Submit'}).status_code==200
     assert client.get('/api/data').json['exceptions'][0]['kind']=='Missing day'
-    assert client.post('/api/users',headers=h,json={}).status_code==403
     h=login(client)
-    new={'id':'new-dev','name':'New developer','role':'Developer','resource_id':'r2','password':'test-password-123'}
-    assert client.post('/api/users',headers=h,json=new).status_code==200
-    assert client.post('/api/users',headers=h,json=new).status_code==400
-    audit=client.get('/api/data').json['audit'][0]
-    assert 'password' not in audit['after_json']
-    r=client.post('/api/session',json={'username':'new-dev','password':'test-password-123'})
-    assert r.status_code==200
-    assert {r['id'] for r in client.get('/api/data').json['resources']}=={'r2'}
+    assert client.post('/api/users',headers=h,json={}).status_code==404
+    assert client.post('/api/v1/users',headers=h,json={}).status_code==404
+
 
 def test_weekly_hours_and_malformed_workbook(client):
     h=login(client)

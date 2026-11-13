@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
@@ -7,7 +8,7 @@ with sync_playwright() as p:
     page=browser.new_page(viewport={'width':1440,'height':1050},device_scale_factor=1)
     errors=[]
     page.on('pageerror',lambda e:errors.append(str(e)))
-    page.goto('http://127.0.0.1:3000')
+    page.goto(os.environ.get('BROWSER_BASE_URL','http://127.0.0.1:3000'))
     page.get_by_label('Username',exact=True).fill('admin')
     page.get_by_label('Password',exact=True).fill('local-demo-only')
     page.get_by_role('button',name='Sign in').click()
@@ -33,9 +34,10 @@ with sync_playwright() as p:
     page.get_by_role('button',name='Delete',exact=True).click()
     page.get_by_role('button',name='Delete allocation',exact=True).click()
     page.wait_for_selector('dialog',state='hidden')
-    for nav in ['Overview','Resources','Projects','Timesheets','Import center','Reconciliation','Reports','Audit history','Access & users']:
+    for nav in ['Overview','Resources','Projects','Timesheets','Import center','Reconciliation','Reports','Audit history']:
         page.locator('nav').get_by_role('button',name=nav).click()
         assert page.locator('#main h1').is_visible()
+    assert page.locator('nav').get_by_role('button',name='Access & users').count()==0
     page.locator('nav').get_by_role('button',name='Resource planner').click()
     page.get_by_label('Search people or tasks',exact=True).fill('Jamie')
     assert page.locator('.planner tbody tr').count()==1

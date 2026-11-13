@@ -15,7 +15,7 @@ python -m venv .venv
 
 The development server listens on port 3000. `PORT` overrides the port. No frontend build or Node package installation is required.
 
-Local development accounts: `admin`, `ops`, `pm`, `dev`, `finance`, `vendor`. Each seeded account initially uses **local-demo-only**. `APP_ADMIN_PASSWORD` overrides this shared initial password **only before the database is first created**. An administrator can set individual passwords in **Access & users** after initialization. This is demo authentication; do not expose these accounts to the public Internet.
+Local development accounts: `admin`, `ops`, `pm`, `dev`, `finance`, `vendor`. Each seeded account initially uses **local-demo-only**. `APP_ADMIN_PASSWORD` overrides this shared initial password **only before the database is first created**. The application does not include a user-administration screen. This is demo authentication; do not expose these accounts to the public Internet.
 
 SQLite data, the generated session signing key and screenshots live in ignored `.local/`. The server seeds sample people, projects, leave and allocations for the current Sydney reporting week only on first initialization. It does not erase existing records on restart. The session key persists across restarts; optionally provide `SESSION_SECRET` securely outside source control. No secrets are required for this local demo.
 
@@ -27,7 +27,7 @@ SQLite data, the generated session signing key and screenshots live in ignored `
 4. **Timesheets:** Create a reporting period. Submit → Review → Approve, or Return with a reason. Missing time on allocated working days is flagged on submission. Resolve exceptions before approval. Self-approval is rejected. Approval locks entries from further imports and corrections. Operations/administrators can reopen with a reason. Corrections are separate signed deltas and require independent approval and resubmission if already in review.
 5. **Reconciliation:** Enter PM or vendor period totals, compare against original time plus approved adjustments, assign exceptions and record resolutions. Statements remain independent; they never add to source actuals. For example, 160 source hours and 176 vendor hours produce a +16h exception.
 6. **Reports:** Set explicit dates and resource/project/team filters. Review planned vs approved actuals, hours/percentage variance and utilisation. CSV/XLSX exports include approved source detail, adjustments, timestamp and filters; exported totals match the selected report. Finance can read/export approved hours, without editing planning data.
-7. **Audit history / Access & users:** Administrators and operations inspect before/after changes. Only administrators manage users and role/resource bindings. Passwords are hashed and omitted from audit logs.
+7. **Audit history:** Administrators and operations inspect before/after changes. User-administration screens and account-management endpoints are not included.
 
 ## Calculation conventions
 
@@ -65,13 +65,16 @@ Stop writes or use SQLite's online backup API to copy `.local/resource.db`; pres
 
 ## Deploy to Render
 
-`render.yaml` is a Render Blueprint for a single Python web service in Singapore with a 1 GB persistent disk. **The Starter service and disk are paid Render resources; review the displayed price before creation.** Automatic redeploy is disabled so future Git pushes do not deploy without a manual action.
+[Deploy to Render](https://render.com/deploy?repo=https://github.com/aliitworx-source/resource-management)
 
-1. Push this repository to GitHub and open Render → New → Blueprint. Connect `aliitworx-source/resource-management`, select its `main` branch, and use the root `render.yaml`.
-2. Enter a unique `APP_ADMIN_PASSWORD` of at least 12 characters in Render's secure setup field. Render generates `SESSION_SECRET`. Never put either value in GitHub or chat.
-3. Review the service/disk price and create the blueprint. Wait for the service health check to pass, then open the HTTPS address Render assigns.
-4. Sign in as `admin` using your chosen password. The other sample accounts receive unknown random passwords in production; set individual passwords in Access & users before use. Sample project/resource data is still present for evaluation.
+1. Open the link, sign into Render, and connect the GitHub repository if prompted.
+2. Review the paid Starter service and 1 GB persistent disk, then click **Deploy Blueprint**. All environment variables and passwords are generated automatically; no commands or password setup are needed.
+3. Open the HTTPS address Render provides. Sign in as `admin`; find the generated password under the service's **Environment → APP_ADMIN_PASSWORD** in Render. Keep it private.
 
-Gunicorn runs one worker with four threads; SQLite and the signing key reside under `DATA_DIR=/var/data`. `/healthz` checks database access. Production sessions use Secure cookies, and startup rejects missing/weak initial credentials. Password environment changes do not reset an already initialized account. Manage existing passwords through the authenticated administrator UI.
+There is no administration section in the app. Login and role checks remain in place. Other seeded accounts have unknown random passwords on new production installations. Existing databases keep their existing passwords; the generated value initializes new databases only.
 
-This deployment is suitable for evaluation; the remaining release requirements above still apply before live business data is used. A persistent disk is required for SQLite: do not switch this blueprint to an ephemeral free service. Disk-backed services have deployment/scaling limitations; use a managed database for a future multi-instance architecture. Render publication is separate from publishing the Codex development environment.
+Future GitHub commits deploy automatically after adopting the updated blueprint. Existing services may need a Blueprint sync or **Manual Deploy → Deploy latest commit** to pick up these changes.
+
+The blueprint runs Gunicorn in Singapore with one worker/four threads. SQLite and the signing key persist under `/var/data`; `/healthz` checks database access. HTTPS session cookies are Secure, and the application rejects missing/weak initialization credentials. Render generates both `SESSION_SECRET` and `APP_ADMIN_PASSWORD`; no secrets are committed to GitHub.
+
+This is an evaluation deployment with sample data. The remaining release requirements above still apply before live business data is used. Persistent storage requires paid Render resources; an ephemeral free instance would lose SQLite data. Render deployment is separate from publishing the Codex development environment.

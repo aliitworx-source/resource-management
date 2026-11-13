@@ -22,7 +22,6 @@ Canonical prefix: `/api/v1`. Short `/api` routes are retained as local aliases. 
 | `/statements` | POST | resource_id, project_id, start, end, hours, kind (`Vendor`/`PM`); stores independent statement and variance exception |
 | `/exceptions` | POST | id, owner, state (`Open`/`In review`/`Resolved`), resolution; resolution required to close |
 | `/export` | GET | start/end required; optional project, resource, resources (comma-separated IDs), format (`csv`/`xlsx`); approved locked-period time only, including approved adjustments |
-| `/users` | POST | id, name, role, optional resource_id, password; `editing` for update; blank existing password preserves hash |
 
 ## Role matrix
 
@@ -38,7 +37,6 @@ Canonical prefix: `/api/v1`. Short `/api` routes are retained as local aliases. 
 | Reconcile statements | Yes | Yes | Owned projects | No | No | Bound resource |
 | Export approved hours | Yes | Yes | Owned projects | No | Yes | No |
 | Audit / raw batches | Yes | Yes | No | No | No | No |
-| Manage accounts | Yes | No | No | No | No | No |
 
 Self-approval is always denied for periods and corrections. Submitted/reviewed periods are returned when a correction is raised or approved. Pending corrections and unresolved period exceptions block period approval. Approved periods reject later imports and corrections until privileged reopening. Independent vendor/PM statements can still record discrepancies without overwriting approved time.
 

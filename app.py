@@ -205,26 +205,6 @@ def create_app(database=None, testing=False):
                 users=rows(c,'SELECT id,name,role,resource_id FROM users') if u['role'] in REVIEW else [],
                 audit=rows(c,'SELECT * FROM audit ORDER BY id DESC LIMIT 300') if u['role'] in EDIT else [])
 
-    @app.post('/api/users')
-    @auth({'Administrator'})
-    def save_user():
-        d=request.get_json(); ident=d.get('id','').strip()
-        roles={'Administrator','Operations','Project Manager','Developer','Finance','Vendor Liaison'}
-        if not ident or not d.get('name','').strip() or d.get('role') not in roles: raise ValueError('Provide a user ID, name, and valid role')
-        with db() as c:
-            old=c.execute('SELECT * FROM users WHERE id=?',(ident,)).fetchone()
-            if old and not d.get('editing'): raise ValueError('User ID already exists')
-            if ident==session['user'] and d['role']!='Administrator': raise ValueError('You cannot remove your own administrator role')
-            rid=d.get('resource_id') or None
-            if rid and not c.execute('SELECT 1 FROM resources WHERE id=?',(rid,)).fetchone(): raise ValueError('Resource not found')
-            if d['role'] in {'Developer','Vendor Liaison'} and not rid: raise ValueError('This role requires a resource binding')
-            password=d.get('password','')
-            if (not old or password) and len(password)<12: raise ValueError('Passwords must have at least 12 characters')
-            hashed=generate_password_hash(password) if password else old['password']
-            c.execute('INSERT INTO users VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,role=excluded.role,resource_id=excluded.resource_id,password=excluded.password',(ident,d['name'],d['role'],rid,hashed))
-            audit(c,'user',ident,'Update' if old else 'Create',None,{k:v for k,v in d.items() if k!='password'})
-        return jsonify(ok=True)
-
     @app.post('/api/resources')
     @auth(EDIT)
     def save_resource():
